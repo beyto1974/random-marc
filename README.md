@@ -61,3 +61,15 @@ diff <(xxd a.mrc) <(xxd b.mrc)   # only 005 timestamps differ
 Each record: `001`/`003`/`005`/`008` control fields, `020` (ISBN-13),
 `100` (author), `245` (title), `264` (publication), `300` (physical
 description), `650` (1–3 subjects), optional `500` (note).
+
+## Web UI (WebAssembly)
+
+Same generator, compiled to WASM, running entirely in the browser — no
+server needed once loaded.
+
+```sh
+make serve
+```
+
+Opens on `http://localhost:8080`. `make wasm` alone just builds
+`web/main.wasm` + copies `web/wasm_exec.js` without serving.

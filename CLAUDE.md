@@ -7,8 +7,11 @@ random names/titles/publishers/cities/ISBNs.
 
 ## Layout
 
-- `main.go` — flag parsing, output sink (stdout or file), format dispatch to the right gomarc writer (`run`/`newWriter`).
+- `main.go` — thin CLI wrapper: flag parsing, output sink (stdout or file), calls `generate.Records`.
+- `internal/generate/generate.go` — `Records(count int, format string, seed int64, w io.Writer) error`, the count/format validation + gomarc writer dispatch (`newWriter`). The one place both the CLI and the wasm build call into.
 - `internal/genmarc/genmarc.go` — `Record(faker *gofakeit.Faker, seq int) (*marc.Record, error)`, the single place record shape lives.
+- `cmd/wasm/main.go` (`//go:build js && wasm`) — exposes `generate.Records` to the browser as `window.generateMARC(count, format, seed)`. Thin glue only; not built or tested by host `go build`/`go test` (build-tag-excluded, silently skipped by wildcard patterns).
+- `web/` — static UI (`index.html`, `app.js`) served against `cmd/wasm`'s output. `web/main.wasm` and `web/wasm_exec.js` are build outputs (gitignored, produced by `make wasm`), not source.
 - `*_test.go` alongside each package.
 
 ## Commands
@@ -17,6 +20,8 @@ random names/titles/publishers/cities/ISBNs.
 - Test: `go test ./...`
 - Vet: `go vet ./...`
 - Run: `go run . -count N -format {mrc|json|xml|text} [-out file] [-seed N]`
+- Build wasm UI: `make wasm` (outputs to `web/`), or `make serve` to also start a local server on :8080.
+- Wasm code can't be unit-tested with plain `go test` (needs a JS runtime for `syscall/js`); it's smoke-tested by running the compiled `.wasm` under node with `wasm_exec.js` and calling `generateMARC` directly — see the commit that added `cmd/wasm` for the exact approach if this needs re-verifying.
 
 ## Conventions
 
