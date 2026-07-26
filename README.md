@@ -1,7 +1,13 @@
 # random-marc
 
+[![test](https://github.com/beyto1974/random-marc/actions/workflows/test.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/test.yml)
+[![docker-publish](https://github.com/beyto1974/random-marc/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/docker-publish.yml)
+[![pages](https://github.com/beyto1974/random-marc/actions/workflows/pages.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/pages.yml)
+
 Go CLI. Generates random bibliographic MARC21 records via
 [gomarc](https://github.com/beyto1974/gomarc).
+
+Web UI (WASM, no server): https://beyto1974.github.io/random-marc/
 
 ## Build
 
@@ -62,6 +68,27 @@ Each record: `001`/`003`/`005`/`008` control fields, `020` (ISBN-13),
 `100` (author), `245` (title), `264` (publication), `300` (physical
 description), `650` (1–3 subjects), optional `500` (note).
 
+## Docker
+
+Image published to GHCR on every push to `main` and on `v*` tags.
+
+```sh
+docker run --rm ghcr.io/beyto1974/random-marc -count 5 -format text
+```
+
+Write to a host file via a bind mount:
+
+```sh
+docker run --rm -v "$PWD:/out" ghcr.io/beyto1974/random-marc \
+  -count 100 -format mrc -out /out/records.mrc
+```
+
+Build locally:
+
+```sh
+docker build -t random-marc .
+```
+
 ## Web UI (WebAssembly)
 
 Same generator, compiled to WASM, running entirely in the browser — no
@@ -73,3 +100,7 @@ make serve
 
 Opens on `http://localhost:8080`. `make wasm` alone just builds
 `web/main.wasm` + copies `web/wasm_exec.js` without serving.
+
+## License
+
+[MIT](LICENSE)
