@@ -3,40 +3,19 @@ package genmarc
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
 	marc "github.com/beyto1974/gomarc"
+	"github.com/brianvoe/gofakeit/v7"
 )
 
-var firstNames = []string{
-	"James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda",
-	"William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
-}
-
-var lastNames = []string{
-	"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
-	"Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas",
-}
-
-var titleWords = []string{
-	"Shadow", "Garden", "River", "Silent", "Distant", "Broken", "Golden", "Hidden",
-	"Winter", "Whisper", "Ember", "Voyage", "Echo", "Labyrinth", "Harbor", "Threshold",
-}
-
+// subtitleWords, subjects and notes have no faker equivalent: LCSH-style
+// subject headings and real catalog note phrasing need curated pools, not
+// generic word/sentence generation.
 var subtitleWords = []string{
 	"a novel", "an introduction", "essays and reflections", "a memoir",
 	"stories from the edge", "a practical guide", "collected writings", "a history",
-}
-
-var publishers = []string{
-	"Northbridge Press", "Willow & Stone", "Alderbrook Publishing", "Ironwood Books",
-	"Cascade House", "Meridian Editions", "Fernwood Press", "Cobalt & Co.",
-}
-
-var places = []string{
-	"New York", "London", "Chicago", "Boston", "San Francisco", "Toronto", "Edinburgh", "Portland",
 }
 
 var subjects = []string{
@@ -52,54 +31,23 @@ var notes = []string{
 	"Originally published in 2005.",
 }
 
-func pick(rng *rand.Rand, pool []string) string {
-	return pool[rng.Intn(len(pool))]
-}
-
 // pickN returns n distinct random entries from pool (n must be <= len(pool)).
-func pickN(rng *rand.Rand, pool []string, n int) []string {
-	idx := rng.Perm(len(pool))[:n]
-	out := make([]string, n)
-	for i, j := range idx {
-		out[i] = pool[j]
-	}
-	return out
-}
-
-// isbn13 returns a random 13-digit ISBN (978 prefix) with a valid EAN-13 check digit.
-func isbn13(rng *rand.Rand) string {
-	digits := make([]int, 12)
-	digits[0], digits[1], digits[2] = 9, 7, 8
-	for i := 3; i < 12; i++ {
-		digits[i] = rng.Intn(10)
-	}
-	sum := 0
-	for i, d := range digits {
-		if i%2 == 0 {
-			sum += d
-		} else {
-			sum += d * 3
-		}
-	}
-	check := (10 - sum%10) % 10
-	var sb strings.Builder
-	for _, d := range digits {
-		fmt.Fprintf(&sb, "%d", d)
-	}
-	fmt.Fprintf(&sb, "%d", check)
-	return sb.String()
+func pickN(faker *gofakeit.Faker, pool []string, n int) []string {
+	cp := append([]string(nil), pool...)
+	faker.ShuffleStrings(cp)
+	return cp[:n]
 }
 
 // Record builds one random bibliographic record. seq is used for the 001 control number.
-func Record(rng *rand.Rand, seq int) (*marc.Record, error) {
+func Record(faker *gofakeit.Faker, seq int) (*marc.Record, error) {
 	record, err := marc.NewRecord()
 	if err != nil {
 		return nil, fmt.Errorf("new record: %w", err)
 	}
 
 	now := time.Now()
-	pubYear := 1980 + rng.Intn(45)
-	first, last := pick(rng, firstNames), pick(rng, lastNames)
+	pubYear := faker.IntRange(1980, 2024)
+	first, last := faker.FirstName(), faker.LastName()
 	author := fmt.Sprintf("%s, %s.", last, first)
 
 	record.AddField(marc.NewControlField("001", fmt.Sprintf("%09d", seq)))
@@ -113,45 +61,47 @@ func Record(rng *rand.Rand, seq int) (*marc.Record, error) {
 		now.Format("060102"), "s", pubYear, "", "xxu", "", "eng", "", "d")
 	record.AddField(marc.NewControlField("008", field008))
 
+	// ISBNOptions.Separator "" is treated as unset (defaults to "-"), so
+	// strip the dashes ourselves to get a bare 13-digit ISBN.
+	isbn := strings.ReplaceAll(faker.ProductISBN(&gofakeit.ISBNOptions{Version: "13", Separator: "-"}), "-", "")
 	record.AddField(marc.NewDataField("020", " ", " ",
-		marc.Subfield{Code: "a", Value: isbn13(rng)},
+		marc.Subfield{Code: "a", Value: isbn},
 	))
 
 	record.AddField(marc.NewDataField("100", "1", " ",
 		marc.Subfield{Code: "a", Value: author},
 	))
 
-	title := fmt.Sprintf("The %s %s", pick(rng, titleWords), pick(rng, titleWords))
 	subfields245 := []marc.Subfield{
-		{Code: "a", Value: title + " :"},
-		{Code: "b", Value: pick(rng, subtitleWords) + " /"},
+		{Code: "a", Value: faker.BookTitle() + " :"},
+		{Code: "b", Value: faker.RandomString(subtitleWords) + " /"},
 		{Code: "c", Value: fmt.Sprintf("%s %s.", first, last)},
 	}
 	record.AddField(marc.NewDataField("245", "1", "0", subfields245...))
 
 	record.AddField(marc.NewDataField("264", " ", "1",
-		marc.Subfield{Code: "a", Value: pick(rng, places) + " :"},
-		marc.Subfield{Code: "b", Value: pick(rng, publishers) + ","},
+		marc.Subfield{Code: "a", Value: faker.City() + " :"},
+		marc.Subfield{Code: "b", Value: faker.Company() + ","},
 		marc.Subfield{Code: "c", Value: fmt.Sprintf("%d.", pubYear)},
 	))
 
-	pages := 100 + rng.Intn(400)
+	pages := faker.IntRange(100, 499)
 	record.AddField(marc.NewDataField("300", " ", " ",
 		marc.Subfield{Code: "a", Value: fmt.Sprintf("%d pages :", pages)},
 		marc.Subfield{Code: "b", Value: "illustrations ;"},
 		marc.Subfield{Code: "c", Value: "24 cm"},
 	))
 
-	subjectCount := 1 + rng.Intn(3)
-	for _, s := range pickN(rng, subjects, subjectCount) {
+	subjectCount := faker.IntRange(1, 3)
+	for _, s := range pickN(faker, subjects, subjectCount) {
 		record.AddField(marc.NewDataField("650", " ", "0",
 			marc.Subfield{Code: "a", Value: s + "."},
 		))
 	}
 
-	if rng.Intn(2) == 0 {
+	if faker.IntRange(0, 1) == 0 {
 		record.AddField(marc.NewDataField("500", " ", " ",
-			marc.Subfield{Code: "a", Value: pick(rng, notes)},
+			marc.Subfield{Code: "a", Value: faker.RandomString(notes)},
 		))
 	}
 

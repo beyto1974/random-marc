@@ -4,11 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"os"
 	"time"
 
 	marc "github.com/beyto1974/gomarc"
+	"github.com/brianvoe/gofakeit/v7"
 	"random-marc/internal/genmarc"
 )
 
@@ -53,7 +53,7 @@ func run(count int, format, out string, seed int64) error {
 	if seed == 0 {
 		seed = time.Now().UnixNano()
 	}
-	rng := rand.New(rand.NewSource(seed))
+	faker := gofakeit.New(uint64(seed))
 
 	write, closeWriter, err := newWriter(format, sink)
 	if err != nil {
@@ -61,7 +61,7 @@ func run(count int, format, out string, seed int64) error {
 	}
 
 	for i := 1; i <= count; i++ {
-		record, err := genmarc.Record(rng, i)
+		record, err := genmarc.Record(faker, i)
 		if err != nil {
 			return fmt.Errorf("generate record %d: %w", i, err)
 		}
