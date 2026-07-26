@@ -1,0 +1,4 @@
+github.com/beyto1974/gomarc v0.1.1 h1:1BVdwjWiPB4RmJpnt9cjhSopj+WW3BaYgOeqSw+xhJs=
+github.com/beyto1974/gomarc v0.1.1/go.mod h1:yRt9i3RD9dtqLN0ZRAj8h+yclOpRXStxu8IqQuU4zqE=
+golang.org/x/text v0.40.0 h1:Ub2Z6/xjgF1WrYQz2nuITOEegKFtiIy+rieRJ5lHZKs=
+golang.org/x/text v0.40.0/go.mod h1:hpnzDAfGV753zIKo+wk3u1bVKCGPbrnF7+7LBF/UHVY=
