@@ -1,8 +1,6 @@
 # random-marc
 
-[![test](https://github.com/beyto1974/random-marc/actions/workflows/test.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/test.yml)
-[![docker-publish](https://github.com/beyto1974/random-marc/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/docker-publish.yml)
-[![pages](https://github.com/beyto1974/random-marc/actions/workflows/pages.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/pages.yml)
+[![ci](https://github.com/beyto1974/random-marc/actions/workflows/ci.yml/badge.svg)](https://github.com/beyto1974/random-marc/actions/workflows/ci.yml)
 
 Go CLI. Generates random bibliographic MARC21 records via
 [gomarc](https://github.com/beyto1974/gomarc).
