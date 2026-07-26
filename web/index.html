@@ -13,6 +13,7 @@
   #status.error { color: #b00020; }
   pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; max-height: 24rem; }
   #download { display: none; margin-top: 1rem; }
+  #copy { display: none; margin-left: 1rem; }
 </style>
 </head>
 <body>
@@ -38,7 +39,7 @@
 </form>
 
 <div id="status">Loading WebAssembly...</div>
-<a id="download" download>Download</a>
+<a id="download" download>Download</a><button id="copy" type="button">Copy to clipboard</button>
 <pre id="preview"></pre>
 
 <script src="wasm_exec.js"></script>
